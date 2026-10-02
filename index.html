@@ -1,0 +1,385 @@
+# gainstaging2
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gain Staging Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Barlow+Condensed:wght@400;600&family=Courier+Prime&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2f2b24;--dim:#5d5647;--cream:#e9e1cb;--cream2:#d9cfb3;--olive:#7d8559;--ochre:#b49650;--rust:#a35e43;
+ --ledG:#9fae6c;--ledY:#d3b05c;--ledR:#c4644a;--offG:#3d4232;--offY:#4a412a;--offR:#4a2f28}
+*{box-sizing:border-box}
+html{background:#2a1a10}
+body{margin:0;min-height:100vh;padding:22px 14px;font:15px 'Barlow Condensed',sans-serif;color:var(--ink);background-color:#2a1a10;
+ background-image:repeating-linear-gradient(93deg,rgba(0,0,0,.16) 0 2px,transparent 2px 9px,rgba(255,210,160,.04) 9px 11px,transparent 11px 23px),linear-gradient(#3a2416,#22150c)}
+.cab{max-width:1640px;margin:0 auto;padding:16px 24px;border-radius:10px;
+ background:#56392a repeating-linear-gradient(88deg,rgba(0,0,0,.2) 0 1px,transparent 1px 6px,rgba(255,200,150,.06) 6px 8px,transparent 8px 17px);
+ box-shadow:0 18px 40px #000a,inset 0 1px 0 #ffffff1a}
+.plate{border-radius:4px;padding:14px 16px;margin:10px 0;
+ background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,rgba(0,0,0,.03) 1px 2px,transparent 2px 3px),linear-gradient(180deg,#d6d4cd,#b7b4ab);
+ box-shadow:inset 0 1px 0 #f3f1ea,inset 0 -2px 0 #0002,0 2px 5px #0007}
+.eng{font-family:Michroma,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#3b3830;text-shadow:0 1px 0 #fff8}
+header.plate{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+header h1{margin:0;font-size:16px}
+header .model{font-size:10px;color:#57534a}
+.top{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+@media(max-width:1100px){.top{grid-template-columns:1fr}}
+.lbl{font:10px Michroma,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#3b3830;margin:0 0 7px}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media(max-width:700px){.presets{grid-template-columns:1fr 1fr}}
+button,.btn{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;text-align:left;
+ font:600 14px 'Barlow Condensed',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#e6dcc4;
+ background:linear-gradient(#3a3935,#1f1e1b);border:1px solid #000;border-radius:3px;box-shadow:inset 0 1px 0 #ffffff22,0 2px 0 #0006}
+button:active{transform:translateY(1px)}
+button::before{content:'';flex:0 0 8px;height:8px;border-radius:50%;background:#3b3122;box-shadow:inset 0 1px 2px #000}
+button.on::before{background:#d9a441;box-shadow:0 0 7px #d9a441aa}
+button small{display:block;font-weight:400;text-transform:none;letter-spacing:0;color:#b9ae94;font-size:12px}
+.listen{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.listen label{font-size:14px;display:flex;align-items:center;gap:6px}
+input[type=range]{accent-color:#6b6455}
+select{padding:5px;font:600 14px 'Barlow Condensed',sans-serif;color:#1b1b1b;border:1px solid #777;border-radius:3px;background:linear-gradient(#f0efeb,#c8c6bf);width:100%}
+.note{font-size:13px;color:#4d483d;margin-top:6px}
+.chain{display:flex;align-items:stretch;gap:0}
+@media(max-width:1200px){.chain{flex-wrap:wrap;gap:10px}.wire{display:none}}
+.wire{align-self:center;width:26px;height:4px;background:linear-gradient(#1a1a1a,#444);position:relative;flex:0 0 26px;border-radius:2px}
+.wire::after{content:'';position:absolute;right:-2px;top:-5px;border:7px solid transparent;border-left:9px solid #2a2a2a}
+.unit{flex:1 1 0;min-width:200px;border-radius:4px;padding:10px;display:flex;flex-direction:column;gap:8px;
+ background:repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,rgba(0,0,0,.03) 1px 2px),linear-gradient(#cfccc3,#aeaba2);border:1px solid #8c897f;box-shadow:inset 0 1px 0 #efede6,0 2px 4px #0005}
+.unit.digital{background:linear-gradient(#3b3a37,#262522);border-color:#111;color:#d8cfb8}
+.unit.digital .eng{color:#cfc5ab;text-shadow:none}
+.unit.mic{background:linear-gradient(#d7cfb9,#bdb39a)}
+.nameplate{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #0003;padding-bottom:5px}
+.nameplate .nm{font-size:12px}
+.nameplate .sub{font:12px 'Barlow Condensed';color:#5d574a;text-transform:uppercase;letter-spacing:.08em}
+.digital .nameplate .sub{color:#a99f86}
+.body{display:flex;gap:10px;align-items:stretch;justify-content:space-between}
+.knobwrap{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+.knob{touch-action:none;cursor:ns-resize;outline:none}
+.knob:focus-visible{filter:drop-shadow(0 0 3px #d9a441)}
+.kval{font:600 20px 'Barlow Condensed';letter-spacing:.03em}
+.klab{font:9px Michroma;letter-spacing:.2em;color:#4b473e}
+.digital .klab{color:#a99f86}
+.meter{display:flex;gap:4px;align-items:stretch}
+.ladder{display:flex;flex-direction:column-reverse;gap:2px;padding:4px;background:#191816;border-radius:3px;box-shadow:inset 0 1px 3px #000}
+.seg{width:16px;height:7px;border-radius:1px}
+.scale{display:flex;flex-direction:column-reverse;justify-content:space-between;font:10px 'Barlow Condensed';color:#3b3830;padding:3px 0;text-align:right;min-width:24px}
+.digital .scale{color:#b8ae95}
+.clip{font:9px Michroma;letter-spacing:.1em;text-align:center;padding:3px 0;border-radius:2px;background:#3a2620;color:#7a5a50;margin-top:4px}
+.clip.lit{background:#c4644a;color:#fff1e0;box-shadow:0 0 8px #c4644aaa}
+canvas{display:block;width:100%}
+.scopewrap{background:#191816;border-radius:3px;padding:3px;box-shadow:inset 0 1px 3px #000}
+.read{font:12.5px/1.45 'Courier Prime',monospace;background:var(--cream);color:#2b261d;border-radius:2px;padding:6px 8px;box-shadow:inset 0 0 18px #c4b48a55}
+.read b{font-weight:400;color:#6d6555}
+.read .bad{color:#a35e43;font-weight:700}
+.read .ok{color:#5d6a3a}
+.digital .read{background:#d7cfb6}
+.mic .ctl{display:grid;grid-template-columns:auto 1fr;gap:5px 8px;align-items:center;font-size:13px}
+.window{position:relative;padding:8px;border-radius:5px;background:#161210;box-shadow:inset 0 2px 7px #000,0 1px 0 #fff}
+.window::after{content:'';position:absolute;inset:8px;pointer-events:none;border-radius:3px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,0) 35%)}
+.verdict{font:14px/1.6 'Courier Prime',monospace;white-space:pre-wrap;background:var(--cream);border-radius:2px;padding:10px 12px;box-shadow:0 1px 3px #0005,inset 0 0 26px #c4b48a55;min-height:150px}
+.bottom{display:grid;grid-template-columns:1.7fr 1fr;gap:16px}
+@media(max-width:1100px){.bottom{grid-template-columns:1fr}}
+footer{font-size:12px;color:#cdbfa3;text-align:center;opacity:.8;padding:4px}
+</style></head><body>
+<div class="cab">
+<header class="plate"><h1 class="eng">Gain Staging Simulator</h1><span class="model eng">Model GS-4 · Mic ▸ Preamp 1 ▸ Preamp 2 ▸ Console ▸ Pro Tools</span></header>
+
+<section class="plate top">
+ <div><div class="lbl">Scenarios</div><div class="presets" id="presets"></div></div>
+ <div><div class="lbl">Monitor</div>
+  <div class="listen">
+   <button id="play">Listen</button>
+   <label>Volume <input type="range" id="vol" min="0" max="1" step="0.01" value="0.5"></label>
+   <label><input type="checkbox" id="match" checked> Auto-match level</label>
+  </div>
+  <div class="listen" style="margin-top:8px">
+   <label class="btn" style="padding:6px 10px">Load voice clip<input type="file" id="file" accept="audio/*" hidden></label>
+   <button id="synth">Synthetic voice</button><span id="srcname" class="note" style="margin:0">Source: synthetic voice</span>
+  </div>
+  <div class="note">Use headphones. <b>Auto-match</b> plays every setting at the same loudness, the way you'd boost a quiet recording in post, so you hear the <i>noise and distortion</i>, not just a volume change.</div>
+ </div>
+</section>
+
+<section class="plate"><div class="chain" id="chain"></div></section>
+
+<section class="plate bottom">
+ <div><div class="lbl">Gain structure · level at each stage (dBu; Pro Tools also in dBFS)</div><div class="window"><canvas id="diag" width="1100" height="330"></canvas></div></div>
+ <div><div class="lbl">Verdict</div><div class="verdict" id="verdict"></div>
+  <div class="lbl" style="margin-top:12px">What the listener hears · level over time after matching</div><div class="window"><canvas id="mon" width="520" height="150"></canvas></div></div>
+</section>
+<footer>Teaching model: typical noise floors & clip points (EIN −128 dBu, console −80 dBu, converter 0 dBFS = +18 dBu). Real gear varies — the relationships are what matter.</footer>
+</div>
+
+<script>
+// ---------- helpers ----------
+const $=id=>document.getElementById(id);
+const ps=(...a)=>10*Math.log10(a.reduce((s,x)=>s+Math.pow(10,x/10),0));
+const lin=d=>Math.pow(10,d/20);
+const sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1);
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+
+// ---------- voice source (synthetic speech-like signal, or a loaded clip) ----------
+let V={data:null,sr:24000,crest:12,blk:480,env:null,pk:null,name:'synthetic voice'};
+function synthVoice(){
+ const sr=24000,dur=7,N=sr*dur,r=rng(7),out=new Float32Array(N);
+ const VOW=[[730,1090,2440],[270,2290,3010],[300,870,2240],[530,1840,2480],[570,840,2410]];
+ const syl=[];let t=0.25;
+ while(t<dur-0.4){const n=4+Math.floor(r()*5);for(let i=0;i<n&&t<dur-0.4;i++){const len=0.15+r()*0.12;syl.push({t0:t,len,amp:0.5+r()*0.5,v:Math.floor(r()*5),fr:r()<0.4});t+=len+0.02+r()*0.05;}t+=0.35+r()*0.45;}
+ const envV=new Float32Array(N),envF=new Float32Array(N),vowAt=new Int8Array(N).fill(-1);
+ syl.forEach(s=>{const a=Math.floor(s.t0*sr),b=Math.min(N,Math.floor((s.t0+s.len)*sr));for(let i=a;i<b;i++){const u=(i-a)/(b-a);envV[i]=Math.pow(Math.sin(Math.PI*u),0.6)*s.amp;vowAt[i]=s.v;
+  if(s.fr&&u<0.25)envF[i]=Math.sin(Math.PI*u/0.25)*0.35*s.amp;}});
+ let ph=0,lp=0,F=[500,1500,2500],st=[[0,0],[0,0],[0,0]],co=[],BW=[80,100,130],GA=[1,0.55,0.28],hp=0,hpx=0,nprev=0,cur=0;
+ for(let i=0;i<N;i++){const tt=i/sr;
+  if(vowAt[i]>=0)cur=vowAt[i];
+  if(i%32===0){for(let k=0;k<3;k++){F[k]+=(VOW[cur][k]-F[k])*0.06;const R=Math.exp(-Math.PI*BW[k]/sr);co[k]=[-2*R*Math.cos(2*Math.PI*F[k]/sr),R*R,1-R];}}
+  const f0=112+16*Math.sin(2*Math.PI*0.21*tt)+8*Math.sin(2*Math.PI*1.3*tt);
+  ph+=f0/sr;if(ph>=1)ph-=1;const saw=2*ph-1;lp+=(saw-lp)*0.35;
+  const nz=r()*2-1,hf=nz-nprev;nprev=nz;
+  const x=lp*envV[i]+hf*envF[i];
+  let y=0;for(let k=0;k<3;k++){const s=st[k],c=co[k];const v=x*c[2]-c[0]*s[0]-c[1]*s[1];s[1]=s[0];s[0]=v;y+=v*GA[k];}
+  hp=0.995*(hp+y-hpx);hpx=y;out[i]=hp;}
+ return {data:out,sr};}
+function prepare(src,name){
+ const d=src.data,sr=src.sr,blk=Math.round(sr*0.02),nb=Math.floor(d.length/blk);
+ const br=new Float32Array(nb);let mx=0;
+ for(let b=0;b<nb;b++){let s=0;for(let i=b*blk;i<(b+1)*blk;i++)s+=d[i]*d[i];br[b]=Math.sqrt(s/blk);mx=Math.max(mx,br[b]);}
+ let s=0,n=0;for(let b=0;b<nb;b++)if(br[b]>mx*0.1){for(let i=b*blk;i<(b+1)*blk;i++)s+=d[i]*d[i];n+=blk;}
+ const g=1/Math.sqrt(s/Math.max(1,n));let pk=0;for(let i=0;i<d.length;i++){d[i]*=g;pk=Math.max(pk,Math.abs(d[i]));}
+ const env=new Float32Array(nb),pkb=new Float32Array(nb);
+ for(let b=0;b<nb;b++){let s2=0,p=0;for(let i=b*blk;i<(b+1)*blk;i++){s2+=d[i]*d[i];p=Math.max(p,Math.abs(d[i]));}env[b]=10*Math.log10(s2/blk+1e-12);pkb[b]=20*Math.log10(p+1e-9);}
+ V={data:d,sr,crest:20*Math.log10(pk),blk,env,pk:pkb,name,dur:d.length/sr};
+ $('srcname').textContent='Source: '+name;}
+prepare(synthVoice(),'synthetic voice');
+
+// ---------- the model ----------
+const MICS={dyn:{n:'Dynamic (SM7B-type)',sens:-59,self:null},con:{n:'Condenser (25 mV/Pa, 13 dB-A)',sens:-32,self:13}};
+const VOICE={whisper:{n:'Whisper',l:40},soft:{n:'Soft',l:54},normal:{n:'Normal',l:60},raised:{n:'Raised',l:66},shout:{n:'Shout',l:78}};
+const ROOM={studio:{n:'Quiet studio (25 dB SPL)',l:25},home:{n:'Home office (35 dB SPL)',l:35},office:{n:'Busy office (45 dB SPL)',l:45},location:{n:'Location / street (55 dB SPL)',l:55}};
+const EIN=-128,AD0=18,ADNOISE=-108; // dBu, 0 dBFS=+18 dBu, converter noise in dBFS
+const STAGES=[
+ {k:'p1',name:'Preamp 1',sub:'mic preamp',lab:'GAIN',min:0,max:75,def:64,clip:22,nOut:-96},
+ {k:'p2',name:'Preamp 2',sub:'line amp / outboard',lab:'GAIN',min:-20,max:30,def:0,clip:24,nOut:-88},
+ {k:'con',name:'Console',sub:'channel + fader',lab:'FADER',min:-40,max:12,def:0,clip:22,nOut:-80},
+ {k:'pt',name:'Pro Tools',sub:'A/D + clip gain',lab:'CLIP GAIN',min:-30,max:50,def:0,digital:true}];
+const SRCNAME={room:'microphone + room noise',ein:'preamp 1 input hiss (EIN)',p1:'preamp 1 output stage',p2:'preamp 2',con:'console',ad:'A/D converter'};
+let S={mic:'dyn',voice:'normal',dist:7,room:'home',g:{p1:64,p2:0,con:0,pt:0}};
+
+function model(){
+ const mic=MICS[S.mic],sens=mic.sens+2.2; // dBV/Pa -> dBu at 94 dB SPL
+ const vSPL=VOICE[S.voice].l+20*Math.log10(100/S.dist);
+ const nSPL=mic.self==null?ROOM[S.room].l:ps(ROOM[S.room].l,mic.self);
+ const micAvg=sens+vSPL-94,micNoise=sens+nSPL-94,C=V.crest;
+ const nodes=[{label:'MIC OUT',avg:micAvg,peak:micAvg+C,noise:micNoise,clip:null,over:0}];
+ const src={room:micNoise,ein:EIN};let avg=micAvg,pk=micAvg+C;
+ const st=[];
+ const step=(key,label,G,clip,nNew,newKey)=>{avg+=G;pk+=G;for(const k in src)src[k]+=G;if(newKey)src[newKey]=nNew;
+  const noise=ps(...Object.values(src));let over=pk-clip;if(over>0){pk=clip;if(avg>clip-3)avg=clip-3;}
+  const n={label,avg,peak:pk,noise,clip,over:Math.max(0,over),rawOver:over,G};nodes.push(n);return n;};
+ STAGES.slice(0,3).forEach(s=>st.push(step(s.k,s.name.toUpperCase(),S.g[s.k],s.clip,s.nOut,s.k)));
+ const ad=step('ad','A/D IN',0,AD0,AD0+ADNOISE,'ad');
+ const daw=step('daw','PRO TOOLS OUT',S.g.pt,AD0,null,null);
+ let dom='room',dv=-999;for(const k in src)if(src[k]>dv){dv=src[k];dom=k;}
+ return {vSPL,nSPL,micAvg,micNoise,micSNR:micAvg-micNoise,nodes,st,ad,daw,snr:daw.avg-daw.noise,dom,src};}
+
+// ---------- knobs ----------
+function knobSVG(size){return `<svg class="knob" tabindex="0" width="${size}" height="${size}" viewBox="0 0 100 100">
+ <defs><radialGradient id="kb" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#5a5650"/><stop offset=".6" stop-color="#2a2825"/><stop offset="1" stop-color="#141311"/></radialGradient>
+ <radialGradient id="ks" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#e6e3db"/><stop offset=".7" stop-color="#b1ada3"/><stop offset="1" stop-color="#85817a"/></radialGradient></defs>
+ ${Array.from({length:11},(_,i)=>{const g=(-135+27*i)*Math.PI/180;return `<line x1="${50+43*Math.sin(g)}" y1="${50-43*Math.cos(g)}" x2="${50+48*Math.sin(g)}" y2="${50-48*Math.cos(g)}" stroke="#3b3830" stroke-width="${i%5?1.2:2.2}"/>`;}).join('')}
+ <circle cx="50" cy="52" r="37" fill="#0003"/><circle cx="50" cy="50" r="36" fill="url(#ks)" stroke="#77736b"/>
+ ${Array.from({length:36},(_,i)=>`<line x1="50" y1="15" x2="50" y2="19" stroke="#8a867d" transform="rotate(${i*10} 50 50)"/>`).join('')}
+ <circle cx="50" cy="50" r="27" fill="url(#kb)" stroke="#0e0e0d"/><ellipse cx="44" cy="40" rx="11" ry="6" fill="#ffffff12"/>
+ <g class="ptr"><line x1="50" y1="47" x2="50" y2="17" stroke="#e9e1cb" stroke-width="3.2" stroke-linecap="round"/></g></svg>`;}
+const KN={};
+function makeKnob(el,s){el.innerHTML=knobSVG(86);const svg=el.querySelector('svg'),ptr=svg.querySelector('.ptr');
+ const set=v=>{v=Math.max(s.min,Math.min(s.max,Math.round(v*2)/2));S.g[s.k]=v;ptr.setAttribute('transform',`rotate(${-135+270*(v-s.min)/(s.max-s.min)} 50 50)`);
+  el.parentNode.querySelector('.kval').textContent=sg(v)+' dB';changed();};
+ let y0,v0;svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);y0=e.clientY;v0=S.g[s.k];});
+ svg.addEventListener('pointermove',e=>{if(!svg.hasPointerCapture(e.pointerId))return;set(v0+(y0-e.clientY)*(s.max-s.min)/220*(e.shiftKey?0.25:1));});
+ svg.addEventListener('wheel',e=>{e.preventDefault();set(S.g[s.k]+(e.deltaY<0?1:-1));},{passive:false});
+ svg.addEventListener('dblclick',()=>set(s.def));
+ svg.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowRight'){set(S.g[s.k]+1);e.preventDefault();}if(e.key==='ArrowDown'||e.key==='ArrowLeft'){set(S.g[s.k]-1);e.preventDefault();}});
+ KN[s.k]=set;}
+
+// ---------- meters ----------
+const AN_SEG=[-50,-40,-34,-30,-26,-22,-18,-14,-10,-7,-4,-2,0,2,4,6,8,10,12,14,16,18,20,22];  // dBu
+const DG_SEG=[-60,-50,-42,-36,-30,-26,-22,-20,-18,-16,-14,-12,-10,-8,-6,-5,-4,-3,-2,-1];   // dBFS
+const segCol=(digital,v)=>digital?(v>=-3?'R':v>=-12?'Y':'G'):(v>=16?'R':v>=4?'Y':'G');
+function meterHTML(digital){const seg=digital?DG_SEG:AN_SEG;
+ const labs=digital?['−60','−36','−18','−12','−6','0']:['−40','−20','0','+4','+10','+22'];
+ return `<div class="meter"><div class="scale">${labs.map(l=>`<span>${l}</span>`).join('')}</div><div><div class="ladder">${seg.map(v=>`<div class="seg" data-v="${v}" data-c="${segCol(digital,v)}"></div>`).join('')}</div>
+ <div class="clip">CLIP</div></div></div>`;}
+const OFF={G:'var(--offG)',Y:'var(--offY)',R:'var(--offR)'},ON={G:'var(--ledG)',Y:'var(--ledY)',R:'var(--ledR)'};
+
+// ---------- build UI ----------
+function build(){
+ let h=`<div class="unit mic"><div class="nameplate"><span class="nm eng">Microphone</span><span class="sub">source</span></div>
+  <div class="ctl"><span>Mic</span><select id="micSel">${Object.entries(MICS).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('')}</select>
+  <span>Voice</span><select id="voiceSel">${Object.entries(VOICE).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('')}</select>
+  <span>Distance</span><span><input type="range" id="distR" min="0" max="100" step="1" style="width:100%"><span id="distV"></span></span>
+  <span>Room</span><select id="roomSel">${Object.entries(ROOM).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('')}</select></div>
+  <div class="scopewrap"><canvas class="scope" id="sc_mic" width="240" height="70"></canvas></div>
+  <div class="read" id="rd_mic"></div></div>`;
+ STAGES.forEach(s=>{h+=`<div class="wire"></div><div class="unit${s.digital?' digital':''}" id="u_${s.k}"><div class="nameplate"><span class="nm eng">${s.name}</span><span class="sub">${s.sub}</span></div>
+  <div class="body"><div class="knobwrap"><div class="kn" id="kn_${s.k}"></div><div class="kval"></div><div class="klab">${s.lab}</div>
+  ${s.digital?'<div class="klab" style="margin-top:6px">A/D: 0 dBFS = +18 dBu</div>':''}</div>${meterHTML(!!s.digital)}</div>
+  <div class="scopewrap"><canvas class="scope" id="sc_${s.k}" width="240" height="70"></canvas></div>
+  <div class="read" id="rd_${s.k}"></div></div>`;});
+ $('chain').innerHTML=h;
+ STAGES.forEach(s=>makeKnob($('kn_'+s.k),s));
+ $('micSel').onchange=e=>{S.mic=e.target.value;changed();};$('voiceSel').onchange=e=>{S.voice=e.target.value;changed();};$('roomSel').onchange=e=>{S.room=e.target.value;changed();};
+ $('distR').oninput=e=>{S.dist=Math.round(2*Math.pow(50,e.target.value/100));changed();};}
+const PRESETS=[
+ {n:'Well staged',d:'Gain set once at preamp 1',s:{mic:'dyn',voice:'normal',dist:7,room:'home',g:{p1:64,p2:0,con:0,pt:0}}},
+ {n:'Too hot · no headroom',d:'Every stage pushed up',s:{mic:'dyn',voice:'normal',dist:7,room:'home',g:{p1:70,p2:8,con:6,pt:0}}},
+ {n:'Hot early, pulled down later',d:'Meters look fine, distortion is baked in',s:{mic:'dyn',voice:'normal',dist:7,room:'home',g:{p1:75,p2:10,con:-19,pt:0}}},
+ {n:'Too low · fixed in Pro Tools',d:'Preamp barely up, boosted in the DAW',s:{mic:'dyn',voice:'normal',dist:7,room:'home',g:{p1:20,p2:0,con:0,pt:46}}},
+ {n:'Mic noise · too far away',d:'Voice barely above room noise',s:{mic:'dyn',voice:'normal',dist:60,room:'office',g:{p1:75,p2:6,con:4,pt:0}}},
+ {n:'Whisper on a condenser',d:'Mic self-noise + quiet room',s:{mic:'con',voice:'whisper',dist:30,room:'studio',g:{p1:62,p2:0,con:0,pt:0}}}];
+let curPreset=0;
+function applyPreset(i){curPreset=i;const p=PRESETS[i].s;S.mic=p.mic;S.voice=p.voice;S.dist=p.dist;S.room=p.room;
+ $('micSel').value=S.mic;$('voiceSel').value=S.voice;$('roomSel').value=S.room;$('distR').value=Math.round(100*Math.log(S.dist/2)/Math.log(50));
+ STAGES.forEach(s=>KN[s.k](p.g[s.k]));renderPresets();changed();}
+function renderPresets(){$('presets').innerHTML=PRESETS.map((p,i)=>`<button class="${i===curPreset?'on':''}" onclick="applyPreset(${i})"><span>${p.n}<small>${p.d}</small></span></button>`).join('');}
+
+// ---------- readouts & verdict ----------
+let M=null;
+function changed(){if(!$('distV'))return;M=model();$('distV').textContent=' '+S.dist+' cm';
+ $('rd_mic').innerHTML=`<b>VOICE</b>  ${M.vSPL.toFixed(0)} dB SPL\n<b>NOISE</b>  ${M.nSPL.toFixed(0)} dB SPL${MICS[S.mic].self?' (room+self)':''}\n<b>OUT  </b>  ${sg(M.micAvg)} dBu\n<b>SNR  </b>  <span class="${M.micSNR<35?'bad':'ok'}">${M.micSNR.toFixed(0)} dB</span>`.replace(/\n/g,'<br>');
+ STAGES.forEach((s,i)=>{const n=s.digital?M.daw:M.st[i],dg=!!s.digital,u=x=>dg?sg(x-AD0)+' dBFS':sg(x)+' dBu';
+  let r=`<b>AVG </b> ${u(n.avg)}<br><b>PEAK</b> ${u(n.peak)}<br>`;
+  if(dg){const a=M.ad;r=`<b>A/D AVG </b> ${sg(a.avg-AD0)} dBFS<br><b>A/D PEAK</b> ${a.over>0?`<span class="bad">CLIPPED</span>`:sg(a.peak-AD0)+' dBFS'}<br><b>OUT AVG </b> ${sg(n.avg-AD0)} dBFS<br>`;}
+  const hr=(dg?M.ad:n).clip-(dg?M.ad:n).peak,over=(dg?M.ad:n).over;
+  r+=`<b>HEADROOM</b> ${over>0?`<span class="bad">−${over.toFixed(1)} dB (CLIP)</span>`:`<span class="${hr<6?'bad':'ok'}">${hr.toFixed(1)} dB</span>`}<br><b>NOISE</b> ${u(n.noise)}<br><b>S/N</b> <span class="${n.avg-n.noise<35?'bad':'ok'}">${(n.avg-n.noise).toFixed(1)} dB</span>`;
+  $('rd_'+s.k).innerHTML=r;});
+ verdict();if(AU.ctx)updateAudio();}
+function verdict(){const L=[];
+ const clipped=M.nodes.filter(n=>n.over>0&&n!==M.daw);
+ if(clipped.length){const f=clipped[0];L.push(`✖ CLIPPING at ${f.label}: peaks ${f.over.toFixed(1)} dB over its ceiling.`);
+  if(clipped.length>1)L.push(`  …and again at ${clipped.slice(1).map(n=>n.label).join(', ')}.`);
+  L.push(`  That distortion is now part of the recording — turning\n  down later can't remove it. Lower the gain AT or BEFORE\n  ${f.label}.`);}
+ else L.push('✔ No clipping anywhere in the chain.');
+ const snr=M.snr,q=snr>=45?'clean':snr>=35?'room tone / faint hiss in the pauses':snr>=25?'NOISY — hiss is clearly audible':'VOICE BURIED in noise';
+ L.push(`\nSignal-to-noise: ${snr.toFixed(1)} dB — ${q}.`);
+ L.push(`Biggest noise source: ${SRCNAME[M.dom]}.`);
+ if(snr<45){if(M.dom==='room')L.push(`  Fix at the source: move the mic closer, quieter room${S.mic==='con'?', quieter mic':''}.\n  No amount of gain fixes noise that's already in the mic.`);
+  else if(M.dom==='ein')L.push('  The preamp is working too hard: get the mic closer or use\n  a hotter mic / inline booster.');
+  else L.push(`  The signal was too low going INTO the ${SRCNAME[M.dom]}, so its noise\n  got boosted with the voice. Add gain earlier — at preamp 1.`);}
+ const a=M.ad.avg-AD0,p=M.ad.peak-AD0;
+ L.push(`\nPro Tools input: avg ${sg(a)} dBFS, peaks ${M.ad.over>0?'CLIPPED':sg(p)+' dBFS'}.`);
+ L.push(M.ad.over>0?'  Converter overload — the loudest moments are flattened.':a<-30?'  Low — you will have to boost it, raising every noise floor.':p>-6?'  Hot — under 6 dB of headroom for a sudden laugh or shout.':a<=-15&&a>=-24?'  On target: speech around −18 to −20 dBFS, peaks near −10.':'  Usable.');
+ if(M.daw.over>0)L.push(`  Pro Tools output is ${M.daw.over.toFixed(1)} dB over 0 dBFS. Pro Tools mixes in\n  floating point, so pull the clip gain/fader down — but a\n  bounce or print at this level will clip.`);
+ $('verdict').textContent=L.join('\n');}
+
+// ---------- audio ----------
+const AU={ctx:null,nodes:null,start:0,playing:false};
+function noiseBuffer(ctx){const n=ctx.sampleRate*3,b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*1.732;return b;}
+function startAudio(){const ctx=AU.ctx;const nb=noiseBuffer(ctx);
+ const vb=ctx.createBuffer(1,V.data.length,V.sr);vb.copyToChannel(V.data,0);
+ const src=ctx.createBufferSource();src.buffer=vb;src.loop=true;
+ const mkNoise=g=>{const s=ctx.createBufferSource();s.buffer=nb;s.loop=true;s.start(0,Math.random()*2.5);const gn=ctx.createGain();gn.gain.value=g;s.connect(gn);return {s,gn};};
+ const N={src};N.gMic=ctx.createGain();src.connect(N.gMic);
+ const sum=ctx.createGain();N.gMic.connect(sum);
+ N.nRoom=mkNoise(0);N.nRoom.gn.connect(sum);N.nEin=mkNoise(lin(EIN));N.nEin.gn.connect(sum);
+ let node=sum;N.st={};
+ const shaper=()=>{const w=ctx.createWaveShaper();w.curve=new Float32Array([-1,1]);return w;};
+ const stage=(key,clip,nlev)=>{const g=ctx.createGain(),add=ctx.createGain(),pre=ctx.createGain(),post=ctx.createGain(),w=shaper();
+  node.connect(g);g.connect(add);let nz=null;if(nlev!=null){nz=mkNoise(lin(nlev));nz.gn.connect(add);}
+  pre.gain.value=1/lin(clip);post.gain.value=lin(clip);add.connect(pre);pre.connect(w);w.connect(post);node=post;N.st[key]={g,nz};};
+ STAGES.slice(0,3).forEach(s=>stage(s.k,s.clip,s.nOut));
+ stage('ad',AD0,AD0+ADNOISE);
+ stage('daw',AD0,null);
+ N.mon=ctx.createGain();N.vol=ctx.createGain();const lim=shaper();node.connect(N.mon);N.mon.connect(N.vol);N.vol.connect(lim);lim.connect(ctx.destination);
+ AU.nodes=N;updateAudio(true);src.start();AU.start=ctx.currentTime;AU.playing=true;
+ AU.all=[src,N.nRoom.s,N.nEin.s,...Object.values(N.st).filter(x=>x.nz).map(x=>x.nz.s)];}
+function stopAudio(){if(AU.all)AU.all.forEach(s=>{try{s.stop();}catch(e){}});AU.playing=false;AU.nodes=null;}
+function updateAudio(now){const N=AU.nodes;if(!N)return;const ctx=AU.ctx,t=ctx.currentTime,set=(p,v)=>now?p.setValueAtTime(v,t):p.setTargetAtTime(v,t,0.03);
+ set(N.gMic.gain,lin(M.micAvg));set(N.nRoom.gn.gain,lin(M.micNoise));
+ ['p1','p2','con'].forEach(k=>set(N.st[k].g.gain,lin(S.g[k])));set(N.st.ad.g.gain,1);set(N.st.daw.g.gain,lin(S.g.pt));
+ // output of chain is in "dBu" units; 0 dBFS = +18 dBu
+ const outAvg=M.daw.avg;const matched=$('match').checked?lin(-20-(outAvg-AD0))/lin(AD0):1/lin(AD0);
+ set(N.mon.gain,Math.min(matched,1e4));set(N.vol.gain,+$('vol').value);}
+$('play').onclick=async()=>{if(!AU.ctx)AU.ctx=new (window.AudioContext||window.webkitAudioContext)();await AU.ctx.resume();
+ if(AU.playing){stopAudio();$('play').classList.remove('on');$('play').textContent='Listen';}else{startAudio();$('play').classList.add('on');$('play').textContent='Stop';}};
+$('vol').oninput=()=>updateAudio();$('match').onchange=()=>updateAudio();
+$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(!AU.ctx)AU.ctx=new (window.AudioContext||window.webkitAudioContext)();
+ try{const ab=await AU.ctx.decodeAudioData(await f.arrayBuffer());const n=Math.min(ab.length,ab.sampleRate*30),d=new Float32Array(n);
+  for(let c=0;c<ab.numberOfChannels;c++){const ch=ab.getChannelData(c);for(let i=0;i<n;i++)d[i]+=ch[i]/ab.numberOfChannels;}
+  prepare({data:d,sr:ab.sampleRate},f.name);restartIfPlaying();changed();}catch(err){$('srcname').textContent='Could not read that file.';}};
+$('synth').onclick=()=>{prepare(synthVoice(),'synthetic voice');restartIfPlaying();changed();};
+function restartIfPlaying(){if(AU.playing){stopAudio();startAudio();}}
+
+// ---------- animation ----------
+const hold={};let lastT=performance.now();
+function now(){return AU.playing?(AU.ctx.currentTime-AU.start)%V.dur:(performance.now()/1000)%V.dur;}
+function chainAt(x){ // x = mic level (dBu) for this instant; returns per-stage output levels and clip flags
+ const out=[],keys=['p1','p2','con'];
+ keys.forEach((k,i)=>{x+=S.g[k];const c=STAGES[i].clip,cl=x>c;if(cl)x=c;out.push({v:x,cl});});
+ const adCl=x>AD0;if(adCl)x=AD0;out.push({v:x,cl:adCl});
+ x+=S.g.pt;out.push({v:x,cl:x>AD0});return out;}
+function frame(){const tn=performance.now(),dt=(tn-lastT)/1000;lastT=tn;if(!M){requestAnimationFrame(frame);return;}
+ const t=now(),b=Math.min(V.pk.length-1,Math.floor(t*V.sr/V.blk));
+ const lv=chainAt(M.micAvg+V.pk[b]);
+ STAGES.forEach((s,i)=>{const n=s.digital?M.daw:M.st[i];let L=s.digital?lv[4]:lv[i];
+  let disp=ps(L.v,n.noise);if(s.digital)disp-=AD0;
+  const h=hold[s.k]||{v:-200,c:0};h.v=Math.max(disp,h.v-26*dt);const clipNow=s.digital?(lv[3].cl||lv[4].cl):L.cl;h.c=clipNow?1.2:Math.max(0,h.c-dt);hold[s.k]=h;
+  const u=$('u_'+s.k);u.querySelectorAll('.seg').forEach(e=>{const on=h.v>=+e.dataset.v;e.style.background=on?ON[e.dataset.c]:OFF[e.dataset.c];});
+  u.querySelector('.clip').classList.toggle('lit',h.c>0);});
+ drawScopes(t);drawDiag(lv);drawMon(t);requestAnimationFrame(frame);}
+function drawScopes(t){const W=240,H=70,n=Math.floor(V.sr*0.05),i0=Math.floor(t*V.sr)%Math.max(1,V.data.length-n);
+ const ids=['mic','p1','p2','con','pt'];
+ ids.forEach((id,si)=>{const c=$('sc_'+id),g=c.getContext('2d');g.fillStyle='#1c1b18';g.fillRect(0,0,W,H);
+  g.strokeStyle='#3a3a33';g.beginPath();g.moveTo(0,(H+10)/2);g.lineTo(W,(H+10)/2);g.stroke();
+  // clip lines
+  g.setLineDash([4,3]);g.strokeStyle='#a35e43';[16,H-6].forEach(y=>{g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();});g.setLineDash([]);
+  const node=si===0?null:(si===4?M.ad:M.st[si-1]);const clip=si===0?M.micAvg+V.crest+6:(si===4?AD0:node.clip);
+  const nlin=lin((si===0?M.micNoise:(si===4?M.daw.noise-S.g.pt:node.noise))-clip);
+  let clippedAny=false;g.lineWidth=1.3;g.beginPath();
+  for(let x=0;x<W;x++){let s=V.data[i0+Math.floor(x*n/W)]*lin(M.micAvg),cl=false;
+   if(si>0){const ks=['p1','p2','con'];for(let k=0;k<Math.min(si,3);k++){s*=lin(S.g[ks[k]]);const c=lin(STAGES[k].clip);if(Math.abs(s)>c){s=Math.sign(s)*c;cl=true;}}
+    if(si===4){const c=lin(AD0);if(Math.abs(s)>c){s=Math.sign(s)*c;cl=true;}}}
+   let y=s/lin(clip)+(Math.random()*2-1)*nlin*1.7;clippedAny=clippedAny||cl;y=Math.max(-1.05,Math.min(1.05,y));
+   const py=(H+10)/2-y*((H-22)/2);x?g.lineTo(x,py):g.moveTo(x,py);}
+  g.strokeStyle=clippedAny?'#d27a5c':'#b9c27e';g.stroke();
+  g.fillStyle='#1c1b18';g.fillRect(0,0,W,13);g.fillStyle='#a1987e';g.font='10px Barlow Condensed';g.fillText(si===0?'MIC OUTPUT (zoomed in)':si===4?'A/D INPUT · dashes = 0 dBFS':'OUTPUT · dashes = clip point',4,10);});}
+function drawDiag(lv){const c=$('diag'),g=c.getContext('2d'),W=c.width,H=c.height,l=62,r=W-70,tp=40,bt=H-36,lo=-130,hi=30;
+ const Y=d=>tp+(bt-tp)*(hi-Math.max(lo,Math.min(hi,d)))/(hi-lo);
+ const bg=g.createRadialGradient(W/2,H/2,0,W/2,H/2,W*.7);bg.addColorStop(0,'#f2e9cf');bg.addColorStop(1,'#cdb98d');g.fillStyle=bg;g.fillRect(0,0,W,H);
+ g.font='12px Barlow Condensed';g.lineWidth=1;
+ for(let d=lo;d<=hi;d+=10){g.strokeStyle=d===0?'rgba(60,50,35,.5)':'rgba(60,50,35,.18)';g.beginPath();g.moveTo(l,Y(d));g.lineTo(r,Y(d));g.stroke();g.fillStyle='#4a4235';g.textAlign='right';g.fillText((d>0?'+':'')+d,l-6,Y(d)+4);}
+ g.textAlign='left';for(let d=-60;d<=0;d+=10){const y=Y(d+AD0);g.fillText(d+' dBFS',r+6,y+4);}
+ g.save();g.translate(14,(tp+bt)/2);g.rotate(-Math.PI/2);g.textAlign='center';g.fillText('dBu',0,0);g.restore();
+ const nodes=M.nodes,n=nodes.length,X=i=>l+30+(r-l-60)*i/(n-1);
+ nodes.forEach((nd,i)=>{const x=X(i);g.strokeStyle='rgba(60,50,35,.25)';g.beginPath();g.moveTo(x,tp);g.lineTo(x,bt);g.stroke();
+  g.fillStyle='#2f2b24';g.textAlign='center';g.font='600 12px Barlow Condensed';g.fillText(nd.label,x,H-18);});
+ // bands
+ for(let i=0;i<n;i++){const nd=nodes[i],x=X(i);
+  if(nd.clip!=null){g.fillStyle=nd.over>0?'rgba(196,100,74,.35)':'rgba(125,133,89,.22)';const y1=Y(nd.clip),y2=Y(nd.over>0?nd.clip:nd.peak);g.fillRect(x-18,y1,36,Math.max(2,y2-y1));
+   g.fillStyle=nd.over>0?'#a35e43':'#5d6a3a';g.font='600 12px Barlow Condensed';g.fillText(nd.over>0?`CLIP +${nd.over.toFixed(1)}`:`${(nd.clip-nd.peak).toFixed(0)} dB`,x,y1-5);}
+  g.fillStyle='rgba(80,75,65,.12)';const ya=Y(nd.avg),yn=Y(nd.noise);g.fillRect(x-10,ya,20,yn-ya);
+  g.fillStyle='#6d6555';g.font='11px Barlow Condensed';g.fillText(`S/N ${(nd.avg-nd.noise).toFixed(0)}`,x,yn+13);}
+ const line=(f,col,w,dash)=>{g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.beginPath();let s=false;nodes.forEach((nd,i)=>{const v=f(nd);if(v==null){s=false;return;}const x=X(i),y=Y(v);if(!s){g.moveTo(x,y);s=true;}else g.lineTo(x,y);});g.stroke();g.setLineDash([]);};
+ line(nd=>nd.clip,'#a35e43',2,[6,4]);line(nd=>nd.peak,'#b49650',2.4);line(nd=>nd.avg,'#5d6a3a',2.8);line(nd=>nd.noise,'#4a453c',2,[2,3]);
+ // live level dots
+ const live=[M.micAvg+V.pk[Math.min(V.pk.length-1,Math.floor(now()*V.sr/V.blk))],...lv.map(o=>o.v)];
+ live.forEach((v,i)=>{g.fillStyle='#2f2b24';g.beginPath();g.arc(X(i),Y(v),4,0,7);g.fill();});
+ // legend
+ const lg=[['CLIP CEILING','#a35e43'],['PEAK','#b49650'],['AVERAGE','#5d6a3a'],['NOISE FLOOR','#4a453c'],['HEADROOM','rgba(125,133,89,.5)']];
+ g.font='600 11px Barlow Condensed';g.textAlign='left';let lx=l+8;lg.forEach(([t,c])=>{g.fillStyle=c;g.fillRect(lx,10,16,5);g.fillStyle='#2f2b24';g.fillText(t,lx+20,16);lx+=g.measureText(t).width+44;});}
+function drawMon(t){const c=$('mon'),g=c.getContext('2d'),W=c.width,H=c.height,top=12,lo=-75;
+ g.fillStyle='#1c1b18';g.fillRect(0,0,W,H);const Y=d=>top+(H-top-6)*(Math.max(lo,Math.min(12,d))-12)/(lo-12)*-1+0;
+ const yy=d=>top+(H-top-6)*(12-Math.max(lo,Math.min(12,d)))/(12-lo);
+ g.strokeStyle='#33322c';g.font='10px Barlow Condensed';g.fillStyle='#7d766388';
+ [0,-20,-40,-60].forEach(d=>{g.beginPath();g.moveTo(28,yy(d));g.lineTo(W,yy(d));g.stroke();g.fillText(d,4,yy(d)+3);});
+ const nb=V.env.length,cur=Math.floor(t*V.sr/V.blk),span=200,noiseRel=-M.snr;
+ const anyClip=bk=>{const o=chainAt(M.micAvg+V.pk[bk]);return o.some(x=>x.cl);};
+ g.beginPath();g.moveTo(28,H);
+ for(let i=0;i<span;i++){const bk=((cur-span+i)%nb+nb)%nb,x=28+(W-28)*i/span;g.lineTo(x,yy(ps(V.env[bk],noiseRel)));}
+ g.lineTo(W,H);g.closePath();g.fillStyle='#8e985e88';g.fill();
+ for(let i=0;i<span;i++){const bk=((cur-span+i)%nb+nb)%nb;if(anyClip(bk)){g.fillStyle='#d27a5c';g.fillRect(28+(W-28)*i/span,top,(W-28)/span+1,6);}}
+ g.setLineDash([4,3]);g.strokeStyle='#c4644a';g.beginPath();g.moveTo(28,yy(noiseRel));g.lineTo(W,yy(noiseRel));g.stroke();g.setLineDash([]);
+ g.fillStyle='#e0cfa6';g.font='600 12px Barlow Condensed';g.fillText(`NOISE FLOOR ${noiseRel.toFixed(0)} dB re voice`,34,Math.min(H-8,yy(noiseRel)-4));
+ g.fillText('VOICE',34,top+14);g.fillStyle='#d27a5c';g.textAlign='right';g.fillText('▮ CLIPPED',W-6,top+14);g.textAlign='left';}
+
+build();renderPresets();applyPreset(0);requestAnimationFrame(frame);
+if(document.fonts)document.fonts.ready.then(()=>changed());
+</script></body></html>
